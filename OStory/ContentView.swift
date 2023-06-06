@@ -79,6 +79,10 @@ struct ContentView: View {
 struct SecondPage: View {
     @Environment(\.presentationMode) var presentationMode
     @Binding var buttons: [[String]]
+    @State private var showFilterPage = false
+    @State private var showProfilePage = false
+    @State private var profileImage: UIImage? = nil
+    @State private var profileName: String = ""
 
     var body: some View {
         VStack {
@@ -114,10 +118,20 @@ struct SecondPage: View {
                     .padding()
             }
             .frame(maxWidth: .infinity)
+
+            backButton
         }
         .navigationBarTitle("OStory")
-        .navigationBarItems(trailing: logoutButton)
+        .navigationBarItems(leading: profileButton, trailing: logoutButton)
         .navigationBarBackButtonHidden(true)
+        .background(
+            NavigationLink(destination: FilterPage(), isActive: $showFilterPage) {
+                EmptyView()
+            }
+        )
+        .sheet(isPresented: $showProfilePage) {
+            ProfilePage(profileImage: $profileImage, profileName: $profileName)
+        }
     }
 
     var logoutButton: some View {
@@ -126,6 +140,23 @@ struct SecondPage: View {
         }) {
             Text("Logout")
         }
+    }
+
+    var profileButton: some View {
+        Button(action: {
+            showProfilePage = true
+        }) {
+            Image(systemName: "person.crop.circle")
+        }
+    }
+
+    var backButton: some View {
+        Button(action: {
+            presentationMode.wrappedValue.dismiss()
+        }) {
+            Text("")
+        }
+        .padding(.top, 10)
     }
 
     func generateButton() {
@@ -144,10 +175,53 @@ struct SecondPage: View {
     }
 }
 
+struct ProfilePage: View {
+    @Environment(\.presentationMode) var presentationMode
+    @Binding var profileImage: UIImage?
+    @Binding var profileName: String
+
+    var body: some View {
+        VStack {
+            Button(action: {
+                // Handle profile image selection
+            }) {
+                Circle()
+                    .frame(width: 150, height: 150)
+                    .overlay(Text("Select Profile Photo").foregroundColor(.white))
+                    .foregroundColor(Color(UIColor(red: 0.96, green: 0.90, blue: 0.55, alpha: 1.00)))
+            }
+
+            TextField("Enter your name", text: $profileName)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+                .padding()
+
+            Button(action: {
+                // Handle save button action
+                saveProfile()
+            }) {
+                Text("Save")
+                    .padding()
+                    .background(Color.blue)
+                    .foregroundColor(.white)
+                    .cornerRadius(10)
+            }
+            .padding()
+        }
+    }
+    func saveProfile() {
+           // Perform profile saving logic
+
+           // Dismiss the profile page
+           presentationMode.wrappedValue.dismiss()
+       }
+   }
+
+
 struct ButtonPage: View {
     @Environment(\.presentationMode) var presentationMode
     @State private var options: [String] = []
     var button: String
+    @State private var showFilterPage = false
 
     var body: some View {
         VStack {
@@ -189,6 +263,11 @@ struct ButtonPage: View {
             shareButton
             filterButton
         })
+        .background(
+            NavigationLink(destination: FilterPage(), isActive: $showFilterPage) {
+                EmptyView()
+            }
+        )
     }
 
     var backButton: some View {
@@ -202,7 +281,10 @@ struct ButtonPage: View {
 
     var shareButton: some View {
         Button(action: {
-            // Handle share action
+            // Display the share sheet
+            let shareText = "Sharing from OStory"
+            let activityViewController = UIActivityViewController(activityItems: [shareText], applicationActivities: nil)
+            UIApplication.shared.windows.first?.rootViewController?.present(activityViewController, animated: true, completion: nil)
         }) {
             Image(systemName: "square.and.arrow.up")
         }
@@ -210,16 +292,114 @@ struct ButtonPage: View {
 
     var filterButton: some View {
         Button(action: {
-            // Handle filter action
+            showFilterPage = true
         }) {
-            Image(systemName: "slider.horizontal.3")
+            Image(systemName: "square.grid.2x2.fill")
         }
     }
 
     func generateOptions() {
+        guard options.isEmpty else {
+            return  // Options already generated, so exit the function
+        }
+        
         options.append(contentsOf: ["message_icon", "voice_note_icon", "choose_photo_icon"])
     }
+
 }
+
+struct FilterPage: View {
+    @Environment(\.presentationMode) var presentationMode
+    @State private var selectedFilters: [String] = []
+    @State private var circles: [CGPoint] = []
+    let maxCircles = 25
+
+    var body: some View {
+        VStack {
+                 VStack {
+                     
+                     Button(action: {}) {
+                                         Text("Filter")
+                           
+                         
+                                             .font(.title)
+                                             .padding()
+                                             .frame(width: 100, height: 100)
+                                             .background(Color(UIColor(red: 0.96, green: 0.90, blue: 0.55, alpha: 1.00))) // Off-white gold color
+                                             .cornerRadius(75)
+                                             .foregroundColor(.white)
+                                             .padding(.top, 20)
+                     }
+                     Spacer()
+                     
+                     ForEach(selectedFilters, id: \.self) { filter in
+                         Text(filter)
+                     }
+                 }
+                
+                Spacer()
+                
+                VStack {
+                    ForEach(circles.indices, id: \.self) { index in
+                        Circle()
+                            .foregroundColor(.yellow)
+                            .foregroundColor(.blue)
+                            .frame(width: 100, height: 100)
+                            .position(circles[index])
+                            .gesture(DragGesture().onChanged { value in
+                                // Update circle position based on drag gesture
+                                self.circles[index] = value.location
+                            })
+                    }
+                    
+                    Button(action: {
+                        addCircle()
+                    }) {
+                        Image(systemName: "plus.circle.fill")
+                            .padding()
+                            .background(Color(UIColor(red: 0.96, green: 0.90, blue: 0.55, alpha: 1.00))) // Off-white gold color
+                            .foregroundColor(.white)
+                            .cornerRadius(75)
+                            .frame(width: 100, height: 100)
+                    }
+                    .padding()
+                }
+            }
+            .padding()
+            .navigationBarItems(trailing: HStack {
+                      playButton
+                      resetButton
+                  })
+        }
+    var playButton: some View {
+         Button(action: {
+             // Perform play action
+         }) {
+             Image(systemName: "play.circle.fill")
+         }
+     }
+        
+        var resetButton: some View {
+            Button(action: {
+                selectedFilters.removeAll()
+                circles.removeAll()
+            }) {
+                Text("Reset")
+            }
+        }
+        
+        func addCircle() {
+            if circles.count < maxCircles {
+              
+                circles.append(CGPoint(x: 50, y: 50))  // Set initial position of the circle
+               
+            }
+        }
+    }
+
+
+
+
 
 
 
