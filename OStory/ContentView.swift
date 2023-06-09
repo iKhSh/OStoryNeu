@@ -3,7 +3,6 @@ import SwiftUI
 struct ContentView: View {
     @State private var username = ""
     @State private var password = ""
-    @State private var showSecondPage = false
     @State private var buttons: [[String]] = []
 
     var body: some View {
@@ -23,14 +22,7 @@ struct ContentView: View {
                     }
 
                     TextField("", text: $username)
-                        .padding()
-                        .background(Color.white)
-                        .cornerRadius(10)
-                        .shadow(color: .gray, radius: 1, x: 0, y: 1)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 10)
-                                .stroke(Color.gray, lineWidth: 1)
-                        )
+                        .textFieldStyle(RoundedBorderTextFieldStyle()) // Use a predefined rounded border style
                         .padding(.bottom, 10)
 
                     HStack {
@@ -41,14 +33,7 @@ struct ContentView: View {
                     }
 
                     SecureField("", text: $password)
-                        .padding()
-                        .background(Color.white)
-                        .cornerRadius(10)
-                        .shadow(color: .gray, radius: 1, x: 0, y: 1)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 10)
-                                .stroke(Color.gray, lineWidth: 1)
-                        )
+                        .textFieldStyle(RoundedBorderTextFieldStyle()) // Use a predefined rounded border style
                 }
                 .padding(.horizontal)
 
@@ -61,6 +46,7 @@ struct ContentView: View {
                         .cornerRadius(75)
                 }
                 .padding()
+                
                 Text("Don't have an account?")
                     .foregroundColor(.gray)
                 Button("Signup") {
@@ -75,6 +61,7 @@ struct ContentView: View {
         }
     }
 }
+
 
 struct SecondPage: View {
     @Environment(\.presentationMode) var presentationMode
@@ -157,6 +144,7 @@ struct SecondPage: View {
             Text("")
         }
         .padding(.top, 10)
+        .hidden() // Verstecke den Zurück-Button-Text, ohne den Abstand zu beeinflussen
     }
 
     func generateButton() {
@@ -164,16 +152,17 @@ struct SecondPage: View {
             if buttons.count >= 10 {
                 return
             }
-            buttons.append(["Circel"])
+            buttons.append(["Circle"]) // Korrigiere den Schreibfehler "Circel" zu "Circle"
         } else {
             if buttons.isEmpty {
-                buttons.append(["Circel"])
+                buttons.append(["Circle"]) // Korrigiere den Schreibfehler "Circel" zu "Circle"
             } else {
-                buttons[buttons.count - 1].append("Circel")
+                buttons[buttons.count - 1].append("Circle") // Korrigiere den Schreibfehler "Circel" zu "Circle"
             }
         }
     }
 }
+
 
 struct ProfilePage: View {
     @Environment(\.presentationMode) var presentationMode
@@ -196,7 +185,6 @@ struct ProfilePage: View {
                 .padding()
 
             Button(action: {
-                // Handle save button action
                 saveProfile()
             }) {
                 Text("Save")
@@ -208,13 +196,14 @@ struct ProfilePage: View {
             .padding()
         }
     }
-    func saveProfile() {
-           // Perform profile saving logic
 
-           // Dismiss the profile page
-           presentationMode.wrappedValue.dismiss()
-       }
-   }
+    private func saveProfile() {
+        // Perform profile saving logic
+
+        // Dismiss the profile page
+        presentationMode.wrappedValue.dismiss()
+    }
+}
 
 
 struct ButtonPage: View {
@@ -227,6 +216,7 @@ struct ButtonPage: View {
         VStack {
             Text(button)
                 .font(.headline)
+                .padding()
 
             Spacer()
 
@@ -242,6 +232,7 @@ struct ButtonPage: View {
                         .background(Color(UIColor(red: 0.96, green: 0.90, blue: 0.55, alpha: 1.00))) // Off-white gold color
                         .cornerRadius(75)
                 }
+                .buttonStyle(PlainButtonStyle()) // Verhindert den visuellen Effekt des Button-Stils
             }
 
             Button(action: {
@@ -258,7 +249,6 @@ struct ButtonPage: View {
             backButton
         }
         .padding()
-        .navigationBarTitle("OStory")
         .navigationBarItems(trailing: HStack {
             shareButton
             filterButton
@@ -294,7 +284,7 @@ struct ButtonPage: View {
         Button(action: {
             showFilterPage = true
         }) {
-            Image(systemName: "square.grid.2x2.fill")
+            Image(systemName: "line.horizontal.3.decrease.circle.fill")
         }
     }
 
@@ -302,10 +292,9 @@ struct ButtonPage: View {
         guard options.isEmpty else {
             return  // Options already generated, so exit the function
         }
-        
+
         options.append(contentsOf: ["message_icon", "voice_note_icon", "choose_photo_icon"])
     }
-
 }
 
 struct FilterPage: View {
@@ -313,91 +302,122 @@ struct FilterPage: View {
     @State private var selectedFilters: [String] = []
     @State private var circles: [CGPoint] = []
     let maxCircles = 25
-
+    @State private var filterButtons: [[ButtonData]] = [[]]  // Array to store the generated filter buttons
+    
+    struct ButtonData {
+        var name: String
+        var position: CGPoint
+    }
+    
     var body: some View {
         VStack {
-                 VStack {
-                     
-                     Button(action: {}) {
-                                         Text("Filter")
-                           
-                         
-                                             .font(.title)
-                                             .padding()
-                                             .frame(width: 100, height: 100)
-                                             .background(Color(UIColor(red: 0.96, green: 0.90, blue: 0.55, alpha: 1.00))) // Off-white gold color
-                                             .cornerRadius(75)
-                                             .foregroundColor(.white)
-                                             .padding(.top, 20)
-                     }
-                     Spacer()
-                     
-                     ForEach(selectedFilters, id: \.self) { filter in
-                         Text(filter)
-                     }
-                 }
-                
+            VStack {
+                Button(action: {}) {
+                    Text("Filter")
+                        .font(.largeTitle.bold())
+                        .padding()
+                        .frame(width: 150, height: 150)
+                        .background(Color(UIColor(red: 0.96, green: 0.90, blue: 0.55, alpha: 1.00))) // Off-white gold color
+                        .cornerRadius(75)
+                        .foregroundColor(.white)
+                        .padding(.top, 20)
+                }
                 Spacer()
                 
-                VStack {
-                    ForEach(circles.indices, id: \.self) { index in
-                        Circle()
-                            .foregroundColor(.yellow)
-                            .foregroundColor(.blue)
-                            .frame(width: 100, height: 100)
-                            .position(circles[index])
-                            .gesture(DragGesture().onChanged { value in
-                                // Update circle position based on drag gesture
-                                self.circles[index] = value.location
-                            })
-                    }
-                    
-                    Button(action: {
-                        addCircle()
-                    }) {
-                        Image(systemName: "plus.circle.fill")
-                            .padding()
-                            .background(Color(UIColor(red: 0.96, green: 0.90, blue: 0.55, alpha: 1.00))) // Off-white gold color
-                            .foregroundColor(.white)
-                            .cornerRadius(75)
-                            .frame(width: 100, height: 100)
-                    }
-                    .padding()
+                ForEach(selectedFilters, id: \.self) { filter in
+                    Text(filter)
                 }
             }
-            .padding()
-            .navigationBarItems(trailing: HStack {
-                      playButton
-                      resetButton
-                  })
-        }
-    var playButton: some View {
-         Button(action: {
-             // Perform play action
-         }) {
-             Image(systemName: "play.circle.fill")
-         }
-     }
-        
-        var resetButton: some View {
-            Button(action: {
-                selectedFilters.removeAll()
-                circles.removeAll()
-            }) {
-                Text("Reset")
+            
+            Spacer()
+            
+            VStack {
+                ForEach(circles.indices, id: \.self) { index in
+                    Circle()
+                        .foregroundColor(.blue) // Korrigiert die Farbe des äußeren Kreises
+                        .frame(width: 100, height: 100)
+                        .position(circles[index])
+                        .gesture(DragGesture().onChanged { value in
+                            // Update circle position based on drag gesture
+                            self.circles[index] = value.location
+                        })
+                }
+                
+                ForEach(filterButtons.indices, id: \.self) { rowIndex in
+                    HStack(spacing: 10) {
+                        ForEach(filterButtons[rowIndex].indices, id: \.self) { columnIndex in
+                            Button(action: {
+                                // Handle button action
+                            }) {
+                                Text(filterButtons[rowIndex][columnIndex].name)
+                                    .foregroundColor(.white)
+                                    .padding()
+                                    .frame(width: 100, height: 100)
+                                    .background(Color(UIColor(red: 0.96, green: 0.90, blue: 0.55, alpha: 1.00))) // Off-white gold color
+                                    .cornerRadius(75)
+                                    .position(filterButtons[rowIndex][columnIndex].position)
+                                    .gesture(DragGesture().onChanged { value in
+                                        // Update button position based on drag gesture
+                                        self.filterButtons[rowIndex][columnIndex].position = value.location
+                                    })
+                            }
+                        }
+                    }
+                }
+                
+                Button(action: {
+                    addFilterButton()
+                }) {
+                    Image(systemName: "plus.circle.fill")
+                        .padding()
+                        .background(Color(UIColor(red: 0.96, green: 0.90, blue: 0.55, alpha: 1.00))) // Off-white gold color
+                        .foregroundColor(.white)
+                        .cornerRadius(75)
+                        .frame(width: 150, height: 150)
+                }
+                .padding()
             }
         }
-        
-        func addCircle() {
-            if circles.count < maxCircles {
-              
-                circles.append(CGPoint(x: 50, y: 50))  // Set initial position of the circle
-               
+        .padding()
+        .navigationBarItems(trailing: HStack {
+            playButton
+            resetButton
+        })
+    }
+    
+    var playButton: some View {
+        Button(action: {
+            // Perform play action
+        }) {
+            Image(systemName: "play.circle.fill")
+        }
+    }
+    
+    var resetButton: some View {
+        Button(action: {
+            selectedFilters.removeAll()
+            circles.removeAll()
+            filterButtons.removeAll()
+        }) {
+            Text("Reset")
+        }
+    }
+    
+    func addFilterButton() {
+        if filterButtons.last?.count == 2 {
+            if filterButtons.count >= 10 {
+                return
+            }
+            filterButtons.append([ButtonData(name: "Filter", position: CGPoint(x: 50, y: 50))])
+        } else {
+            if filterButtons.isEmpty {
+                filterButtons.append([ButtonData(name: "Filter", position: CGPoint(x: 50, y: 50))])
+            } else {
+                filterButtons[filterButtons.count - 1].append(ButtonData(name: "Filter", position: CGPoint(x: 50, y: 50)))
             }
         }
     }
-
-
+}
 
 
 
